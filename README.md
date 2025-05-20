@@ -22,8 +22,62 @@
 | **Observability**      | `Prometheus`, `Grafana`, `Metrics API`, `HPA`                                    |
 
 ---
+## 🧰 Tools Used
 
-## 🧱 Step-by-Step with Interactions
+* **Node.js** – Web app
+* **Docker** – Containerization
+* **Kubernetes** – Orchestration
+* **kubectl** – CLI for Kubernetes
+* **Minikube** – Local Kubernetes cluster
+* **Jenkins** – CI/CD pipeline
+* **Helm** – Kubernetes package manager
+* **Prometheus + Grafana** – Monitoring
+* **Ingress + NGINX** – Routing & Load Balancing
+
+---
+## Create the Node.js App
+
+```js
+// app/index.js
+const express = require('express');
+const app = express();
+app.get('/', (req, res) => res.send('Hello from Kubernetes!'));
+app.listen(3000, () => console.log('App listening on port 3000'));
+```
+
+```json
+// app/package.json
+{
+  "name": "k8s-nodejs-app",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
+```
+
+
+---
+
+## Dockerize the App
+```dockerfile
+# Dockerfile
+FROM node:18
+WORKDIR /usr/src/app
+COPY app/ .
+RUN npm install
+EXPOSE 3000
+CMD ["npm", "start"]
+```
+
+
+---
+
+## 🧱 Create Kubernetes YAML Files
 
 ---
 
@@ -103,6 +157,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: node-app
+  namespace: demo-ns
 spec:
   replicas: 3
   selector:
@@ -113,6 +168,7 @@ spec:
       labels:
         app: node-app
     spec:
+      serviceAccountName: node-sa # ✅ This attaches the ServiceAccount to the Pod
       containers:
         - name: node-container
           image: laly9999/node-app:1
@@ -125,8 +181,8 @@ spec:
                 name: node-secret
           resources:
             limits:
-              cpu: "500m"
               memory: "256Mi"
+              cpu: "500m"
           volumeMounts:
             - name: app-storage
               mountPath: /usr/src/app/data
@@ -142,7 +198,12 @@ spec:
         - name: app-storage
           persistentVolumeClaim:
             claimName: node-pvc
+
 ```
+
+> The Pod authenticates to the cluster using node-sa, which gives it limited read access to resources like Pods and Services (based on RBAC)
+> node-sa : The Pod will get a token mounted at /var/run/secrets/kubernetes.io/serviceaccount/, allowing it to securely call the Kubernetes API using the permissions defined in the Role.
+
 
 🔁 **Interaction**:  
 - `ConfigMap` and `Secret` configure the app  
@@ -159,6 +220,7 @@ spec:
 kind: Service
 metadata:
   name: node-service
+  namespace: demo-ns
 spec:
   selector:
     app: node-app
@@ -194,6 +256,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: node-ingress
+  namespace: demo-ns
 spec:
   rules:
     - host: node.local
@@ -222,6 +285,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: node-hpa
+  namespace: demo-ns
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -245,12 +309,16 @@ Monitors Deployment → adjusts replicas → leverages `metrics-server`.
 
 ### 🧩 **8. RBAC (Role-Based Access Control)**  
 Define who can do what. ServiceAccounts are used by apps or Jenkins to interact with the cluster.
+> A ServiceAccount is used by:  
+> Pods (via Deployments, Jobs, etc.) to authenticate against the Kubernetes API.  
+> External systems like Jenkins (using a kubeconfig or token tied to the ServiceAccount) to perform operations like deployments.  
 
 ```yaml
 # serviceaccount.yaml
 kind: ServiceAccount
 metadata:
   name: node-sa
+  namespace: demo-ns
 
 # rbac-role.yaml
 kind: Role
@@ -264,6 +332,7 @@ kind: RoleBinding
 subjects:
   - kind: ServiceAccount
     name: node-sa
+    namespace: demo-ns
 roleRef:
   kind: Role
   name: node-role
@@ -282,6 +351,7 @@ Allow only certain Pods or Namespaces to talk to others.
 kind: NetworkPolicy
 metadata:
   name: allow-web
+  namespace: demo-ns
 spec:
   podSelector:
     matchLabels:
@@ -363,7 +433,16 @@ kubectl apply -f k8s/serviceaccount.yaml
 kubectl apply -f k8s/rbac-role.yaml
 kubectl apply -f k8s/network-policy.yaml
 ```
+---
+##  Test Access
+```bash
+# Verify namespace
+kubectl get all -n demo-ns
 
+# Check role access
+kubectl auth can-i list pods --as=system:serviceaccount:demo-ns:node-sa -n demo-ns
+
+```
 ---
 
 ## 🏁 Summary of Interactions
@@ -381,9 +460,4 @@ kubectl apply -f k8s/network-policy.yaml
 
 ---
 
-Would you like me to:
-1. Generate a GitHub repo with all these files?
-2. Package it as a Helm chart?
-3. Convert this into a Medium blog with diagrams?
 
-Let me know how you want to proceed!
