@@ -73,7 +73,15 @@ RUN npm install
 EXPOSE 3000
 CMD ["npm", "start"]
 ```
+### Build and push image
+```bash
+docker build -t laly9999/node-app:1 .
+docker run -d -p 3000:3000 laly9999/node-app:1
+docker push laly9999/node-app:1
 
+
+```
+![image](https://github.com/user-attachments/assets/64143759-3932-41f5-840d-70097994d250)
 
 ---
 
@@ -435,14 +443,21 @@ kubectl apply -f k8s/network-policy.yaml
 ```
 ---
 ##  Test Access
-```bash
-# Verify namespace
-kubectl get all -n demo-ns
 
-# Check role access
+### Verify namespace
+```bash
+kubectl get all -n demo-ns
+```
+![image](https://github.com/user-attachments/assets/86875317-684a-4c3d-a31b-df63eff09cbc)
+
+
+#### Check role access
+```
 kubectl auth can-i list pods --as=system:serviceaccount:demo-ns:node-sa -n demo-ns
 
 ```
+![image](https://github.com/user-attachments/assets/18940252-babd-4a2e-bd8f-daf5d5e97974)
+
 ---
 
 ## 🏁 Summary of Interactions
