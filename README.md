@@ -36,6 +36,36 @@
 * **Ingress + NGINX** – Routing & Load Balancing
 
 ---
+Here’s a clean and professional **Project Structure** section you can include in your GitHub `README.md`, representing your Node.js app deployed with Kubernetes:
+
+---
+
+## 📁 Project Structure
+
+```
+k8s-nodejs-app/
+├── Dockerfile                    # Docker definition for the Node.js app
+├── app/
+│   ├── index.js                 # Main application file
+│   └── package.json             # Node.js dependencies and scripts
+├── k8s/                         # Kubernetes manifests
+│   ├── namespace.yaml           # Namespace for app isolation
+│   ├── configmap.yaml           # App configuration
+│   ├── secret.yaml              # Encoded secrets (e.g., DB credentials)
+│   ├── pvc.yaml                 # Persistent Volume Claim for app data
+│   ├── deployment.yaml          # Pod and container deployment spec
+│   ├── service-clusterip.yaml   # Internal Service definition (ClusterIP)
+│   ├── ingress.yaml             # Ingress rules for `node.local`
+│   ├── hpa.yaml                 # Horizontal Pod Autoscaler configuration
+│   ├── serviceaccount.yaml      # ServiceAccount for pod authentication
+│   ├── rbac-role.yaml           # Role and RoleBinding for RBAC permissions
+│   └── network-policy.yaml      # Network policy to restrict traffic
+├── Jenkinsfile                  # CI/CD pipeline definition using Jenkins
+└── README.md                    # Project overview and usage instructions
+```
+
+---
+
 ## Create the Node.js App
 
 ```js
