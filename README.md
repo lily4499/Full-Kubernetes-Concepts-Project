@@ -1,5 +1,6 @@
 # Full-Kubernetes-Concepts-Project
-
+---
+> Case Study: We needed a lightweight, scalable way to deploy and manage our Node.js-based microservices. To address this, I containerized our Node.js application with Docker and orchestrated its deployment on a Kubernetes cluster using Minikube. I implemented core Kubernetes concepts such as Namespaces, ConfigMaps, Secrets, Persistent Volumes, HPA, RBAC, and Ingress for traffic routing via a custom domain (node.local). A ServiceAccount with scoped RBAC permissions secured internal API access, while Jenkins automated CI/CD builds and deployments. This project helped streamline our development workflow and ensured production-like consistency in our local environments.
 
 ---
  
